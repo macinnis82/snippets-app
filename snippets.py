@@ -21,7 +21,7 @@ def put(name, snippet, hide=False):
       cursor.execute("insert into snippets values (%s,%s,%s)", (name, snippet, hide))
     except psycopg2.IntegrityError:
       connection.rollback()
-      cursor.execute("update snippets set message=%s, hidden=%s where keyword=%s", (snippet, name, hide))
+      cursor.execute("update snippets set message=%s, hidden=%s where keyword=%s", (snippet, hide, name))
       connection.commit()
   
   logging.debug("Snippet stored successfully.")
@@ -46,7 +46,7 @@ def get(snippet):
 
 def delete(name):
   """
-    Retrieve the snippet with a given name
+    Delete a snippet with a given name
     Delete the snippet
   """
   logging.info("Deleting record from database.")
@@ -74,6 +74,7 @@ def catalog():
   
 def search(string):
   """
+    Search for a string within a message
   """
   logging.info("Searching a snippet")
   
