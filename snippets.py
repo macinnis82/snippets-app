@@ -15,15 +15,25 @@ def put(name, snippet):
     Returns the name and the snippet
   """
   logging.info("Storing snippet {!r}: {!r}".format(name, snippet))
-  cursor = connection.cursor()
-  try:
-    command = "insert into snippets values (%s,%s)"
-    cursor.execute(command, (name, snippet))
-  except psycopg2.IntegrityError as e:
-    connection.rollback()
-    command = "update snippets set message=%s where keyword=%s"
-    cursor.execute(command, (snippet, name))
-  connection.commit()
+  
+  # cursor = connection.cursor()
+  # try:
+  #   command = "insert into snippets values (%s,%s)"
+  #   cursor.execute(command, (name, snippet))
+  # except psycopg2.IntegrityError as e:
+  #   connection.rollback()
+  #   command = "update snippets set message=%s where keyword=%s"
+  #   cursor.execute(command, (snippet, name))
+  # connection.commit()
+  
+  with connection, connection.cursor() as cursor:
+    try:
+      cursor.execute("insert into snippets values (%s,%s)", (name, snippet))
+    except psycopg2.IntegrityError:
+      connection.rollback()
+      cursor.execute("update snippets set message=%s where keyword=%s", (snippet, name))
+      connection.commit()
+  
   logging.debug("Snippet stored successfully.")
   return name, snippet
 
@@ -35,22 +45,23 @@ def get(snippet):
   """
   logging.debug("Retrieving snippet {!r}".format(snippet))
   
-  cursor = connection.cursor()
-  command = "select keyword, message from snippets where keyword = %s"
-  snippet_tuple = (snippet,)
-  cursor.execute(command, snippet_tuple)
-  row = cursor.fetchone()
-  connection.commit()
+  # cursor = connection.cursor()
+  # command = "select keyword, message from snippets where keyword = %s"
+  # snippet_tuple = (snippet,)
+  # cursor.execute(command, snippet_tuple)
+  # row = cursor.fetchone()
+  # connection.commit()
+
+  with connection, connection.cursor() as cursor:
+    cursor.execute("select message from snippets where keyword=%s", (snippet,))
+    row = cursor.fetchone()
 
   logging.debug("Snippet retrieved successfully")
 
   if row:
-    print "keyword = {}".format(row[0])
-    print "message = {}".format(row[1])
+    return row[0]
   else:
     print "No row with this snippet: {}".format(snippet)
-    
-  return snippet
 
 def delete(name):
   """
