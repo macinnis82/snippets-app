@@ -79,11 +79,17 @@ def search(string):
   logging.info("Searching a snippet")
   
   with connection, connection.cursor() as cursor:
-    cursor.execute("select * from snippets where message like '%%' ||%s|| '%% and hidden=False'", (string,))
+    # import pdb;
+    # pdb.set_trace()
+    cursor.execute("select * from snippets where message like '%{}%' and hidden=False".format(string))
     rows = cursor.fetchall()
     
-    for row in rows:
-      print row[0]
+    # test for the length of the rows and print something if =0 else print keyword
+    if len(rows) == 0:
+      print "No keywords to return"
+    else:
+        for row in rows:
+          print row[0]
       
   logging.debug("Searching complete")
 
